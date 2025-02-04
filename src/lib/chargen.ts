@@ -29,21 +29,21 @@ interface AnimationConfig {
 }
 
 const ANIMATION_CONFIGS: Record<string, AnimationConfig> = {
-  spellcast: { frames: 7, rows: 4 },
-  thrust: { frames: 8, rows: 4 },
-  walk: { frames: 9, rows: 4 },
-  slash: { frames: 6, rows: 4 },
-  shoot: { frames: 13, rows: 4 },
-  hurt: { frames: 6, rows: 4 },
-  climb: { frames: 4, rows: 4 },
-  idle: { frames: 1, rows: 4 },
-  jump: { frames: 7, rows: 4 },
-  sit: { frames: 5, rows: 4 },
-  emote: { frames: 4, rows: 4 },
-  run: { frames: 9, rows: 4 },
-  combat_idle: { frames: 1, rows: 4 },
-  backslash: { frames: 6, rows: 4 },
-  halfslash: { frames: 7, rows: 4 },
+  spellcast: { frames: 7, rows: 4 }, // First 4 rows, 7 frames each
+  thrust: { frames: 8, rows: 4 }, // Next 4 rows, 8 frames each
+  walk: { frames: 9, rows: 4 }, // Next 4 rows, 9 frames each
+  slash: { frames: 6, rows: 4 }, // 6 frames, 4 rows
+  shoot: { frames: 13, rows: 4 }, // 13 frames, 4 rows
+  hurt: { frames: 6, rows: 1 }, // Single row, 6 frames
+  climb: { frames: 6, rows: 1 }, // Single row, 6 frames
+  idle: { frames: 2, rows: 4 }, // 4 frames, 4 rows
+  jump: { frames: 5, rows: 4 }, // Single row, 6 frames
+  sit: { frames: 3, rows: 4 }, // Single row, 5 frames
+  emote: { frames: 3, rows: 4 }, // Single row, 4 frames
+  run: { frames: 8, rows: 4 }, // 8 frames, 4 rows
+  combat_idle: { frames: 2, rows: 4 }, // 2 frames, 4 rows
+  backslash: { frames: 6, rows: 4 }, // 6 frames, 4 rows
+  halfslash: { frames: 5, rows: 4 }, // 5 frames, 4 rows
 };
 
 async function loadSheetDefinitions(): Promise<SheetDefinition[]> {
@@ -160,9 +160,13 @@ async function drawLayers(
   console.log("Drawing layers:", layers.length);
 
   // Try each animation type
-  for (const [animName, yOffset] of Object.entries(BASE_ANIMATIONS)) {
+  for (const [animName, baseYOffset] of Object.entries(BASE_ANIMATIONS)) {
     try {
-      const config = ANIMATION_CONFIGS[animName] || { frames: 7, rows: 4 };
+      const config = ANIMATION_CONFIGS[animName];
+      if (!config) {
+        console.log(`No config found for animation: ${animName}`);
+        continue;
+      }
 
       // Load animation-specific images for each layer
       const animationLayers = await Promise.all(
@@ -191,20 +195,23 @@ async function drawLayers(
         .filter((l): l is NonNullable<typeof l> => l !== null)
         .sort((a, b) => a.zPos - b.zPos);
 
-      // For each direction (down, left, right, up)
-      for (let direction = 0; direction < config.rows; direction++) {
+      // Calculate actual Y offset based on animation type
+      const yOffset = Number(baseYOffset);
+
+      // For each row in this animation
+      for (let row = 0; row < config.rows; row++) {
         // For each frame in the animation
         for (let frame = 0; frame < config.frames; frame++) {
           // Draw each layer in z-order for this specific frame
           for (const layer of validLayers) {
             ctx.drawImage(
               layer.image,
-              frame * UNIVERSAL_FRAME_SIZE,
-              direction * UNIVERSAL_FRAME_SIZE,
+              frame * UNIVERSAL_FRAME_SIZE, // source x
+              row * UNIVERSAL_FRAME_SIZE, // source y - use row for source
               UNIVERSAL_FRAME_SIZE,
               UNIVERSAL_FRAME_SIZE,
-              frame * UNIVERSAL_FRAME_SIZE,
-              yOffset + direction * UNIVERSAL_FRAME_SIZE,
+              frame * UNIVERSAL_FRAME_SIZE, // dest x
+              yOffset + row * UNIVERSAL_FRAME_SIZE, // dest y - use calculated yOffset
               UNIVERSAL_FRAME_SIZE,
               UNIVERSAL_FRAME_SIZE
             );
