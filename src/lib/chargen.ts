@@ -1,4 +1,4 @@
-import { GenerateSpriteParams, SpriteLayer } from "@/types/sprites";
+import { SpriteLayer } from "@/types/sprites";
 import { createCanvas, loadImage } from "canvas";
 import { promises as fs } from "fs";
 import path from "path";
@@ -46,17 +46,52 @@ const ANIMATION_CONFIGS: Record<string, AnimationConfig> = {
   halfslash: { frames: 5, rows: 4 }, // 5 frames, 4 rows
 };
 
+interface SpriteParams {
+  body: string;
+  head: string;
+  sex: "male" | "female";
+  shadow: string;
+  expression: string;
+  eyes: string;
+  ears: string;
+  nose: string;
+  eyebrows: string;
+  wrinkles: string;
+  beard: string;
+  mustache: string;
+  hair: string;
+  shoulders: string;
+  arms: string;
+  bauldron: string;
+  bracers: string;
+  gloves: string;
+  ring: string;
+  clothes: string;
+  chainmail: string;
+  legs: string;
+  shoes: string;
+  weapon: string | null;
+  shield: string;
+  wounds?: boolean;
+  wheelchair?: boolean;
+  lizard?: boolean;
+  matchBodyColor?: boolean;
+  weaponVariant?: string;
+}
+
 async function loadSheetDefinitions(): Promise<SheetDefinition[]> {
   const definitionsPath = path.join(process.cwd(), "sheet_definitions");
+  console.log("Reading sheet definitions from:", definitionsPath);
+
   const files = await fs.readdir(definitionsPath);
+  console.log("Found definition files:", files);
 
   const definitions: SheetDefinition[] = [];
   for (const file of files) {
     if (file.endsWith(".json")) {
-      const content = await fs.readFile(
-        path.join(definitionsPath, file),
-        "utf-8"
-      );
+      const filePath = path.join(definitionsPath, file);
+      console.log("Loading definition file:", filePath);
+      const content = await fs.readFile(filePath, "utf-8");
       definitions.push(JSON.parse(content));
     }
   }
@@ -64,62 +99,121 @@ async function loadSheetDefinitions(): Promise<SheetDefinition[]> {
 }
 
 async function getLayersForSprite(
-  params: GenerateSpriteParams
+  params: SpriteParams
 ): Promise<SpriteLayer[]> {
   const layers: SpriteLayer[] = [];
   const definitions = await loadSheetDefinitions();
   const assetsPath = path.join(process.cwd(), "public/spritesheets");
-  const animation = params.animation || "idle";
 
-  console.log("Loaded definitions:", definitions.length);
-
-  // Load body base layer
-  const bodyDef = definitions.find((d) => d.type_name === "body");
-  console.log("Found body definition:", bodyDef);
-
-  if (bodyDef) {
-    const bodyTypeKey = params.bodyType as keyof typeof bodyDef.layer_1;
-    const basePath = bodyDef.layer_1[bodyTypeKey];
-
-    if (basePath) {
-      // Include animation folder in the path
-      const fileName = path.join(assetsPath, basePath, animation, "light.png");
-      console.log("Body file path:", fileName);
-
-      layers.push({
-        fileName,
-        zPos: bodyDef.layer_1.zPos,
-        parentName: "body",
-        name: "Body",
-        variant: "light",
-        supportedAnimations: bodyDef.animations,
-      });
-    }
-  }
-
-  // Load head layer
-  const headDef = definitions.find(
-    (d) => d.type_name === "head" && d.name === "Human male"
+  console.log("Assets path:", assetsPath);
+  console.log(
+    "Loading definitions from:",
+    path.join(process.cwd(), "sheet_definitions")
   );
-  console.log("Found head definition:", headDef);
 
-  if (headDef) {
-    const bodyTypeKey = params.bodyType as keyof typeof headDef.layer_1;
-    const basePath = headDef.layer_1[bodyTypeKey];
+  // Process each component in order of z-index
+  const components = [
+    { type: "shadow", path: params.shadow },
+    { type: "body", path: params.body },
+    { type: "head", path: params.head },
+    { type: "eyes", path: params.eyes },
+    { type: "ears", path: params.ears },
+    { type: "nose", path: params.nose },
+    { type: "eyebrows", path: params.eyebrows },
+    { type: "wrinkles", path: params.wrinkles },
+    { type: "beard", path: params.beard },
+    { type: "mustache", path: params.mustache },
+    { type: "hair", path: params.hair },
+    { type: "shoulders", path: params.shoulders },
+    { type: "arms", path: params.arms },
+    { type: "bauldron", path: params.bauldron },
+    { type: "bracers", path: params.bracers },
+    { type: "gloves", path: params.gloves },
+    { type: "ring", path: params.ring },
+    { type: "clothes", path: params.clothes },
+    { type: "chainmail", path: params.chainmail },
+    { type: "legs", path: params.legs },
+    { type: "shoes", path: params.shoes },
+    { type: "weapon", path: params.weapon },
+    { type: "shield", path: params.shield },
+  ];
 
-    if (basePath) {
-      // Include animation folder in the path
-      const fileName = path.join(assetsPath, basePath, animation, "light.png");
-      console.log("Head file path:", fileName);
+  // Helper function to get the base type from a parameter
+  const getBaseType = (param: string) => {
+    const parts = param.split("_");
+    return parts[0].toLowerCase(); // e.g. "Human" from "Human_male_light"
+  };
 
-      layers.push({
-        fileName,
-        zPos: headDef.layer_1.zPos,
-        parentName: "head",
-        name: "Head",
-        variant: "light",
-        supportedAnimations: headDef.animations,
-      });
+  // Helper function to get the last segment of a parameter
+  const getLastSegment = (param: string) => {
+    const parts = param.split("_");
+    return parts[parts.length - 1];
+  };
+
+  // Helper function to parse complex head values
+  const parseHeadValue = (value: string) => {
+    const parts = value.split("_");
+    return {
+      race: parts[0].toLowerCase(), // e.g., "human"
+      gender: parts[1].toLowerCase(), // e.g., "male"
+      variant: parts[2] || "", // e.g., "light"
+    };
+  };
+
+  // Process each component
+  for (const component of components) {
+    if (component.path) {
+      let def;
+
+      if (component.type === "head") {
+        const parsed = parseHeadValue(component.path);
+        def = definitions.find((d) => {
+          // Match exact name (e.g., "Human male" for "Human_male_light")
+          const defName = d.name.toLowerCase();
+          const searchName = `${parsed.race} ${parsed.gender}`;
+          return d.type_name === "head" && defName === searchName;
+        });
+
+        console.log("Head definition search:", {
+          path: component.path,
+          parsed,
+          foundDefinition: def?.name,
+        });
+      } else {
+        def = definitions.find((d) => d.type_name === component.type);
+      }
+
+      if (def) {
+        const sexKey = params.sex as keyof typeof def.layer_1;
+        const basePath = def.layer_1[sexKey];
+
+        if (basePath) {
+          // Use only the last segment of the parameter for the filename
+          const fileName = path.join(
+            assetsPath,
+            basePath as string,
+            "idle",
+            `${getLastSegment(component.path)}.png`
+          );
+
+          console.log(`Attempting to load: ${fileName}`);
+
+          try {
+            await fs.access(fileName);
+            console.log(`File exists: ${fileName}`);
+            layers.push({
+              fileName,
+              zPos: def.layer_1.zPos,
+              parentName: component.type,
+              name: component.type,
+              variant: component.path,
+              supportedAnimations: def.animations || [],
+            });
+          } catch (error) {
+            console.log(`File not found: ${fileName}`);
+          }
+        }
+      }
     }
   }
 
@@ -127,9 +221,7 @@ async function getLayersForSprite(
   return layers;
 }
 
-export async function generateSprite(
-  params: GenerateSpriteParams
-): Promise<Buffer> {
+export async function generateSprite(params: SpriteParams): Promise<Buffer> {
   // 1. Load layer definitions based on params
   const layers = await getLayersForSprite(params);
   console.log("Got layers:", layers.length);
@@ -146,7 +238,7 @@ export async function generateSprite(
   const sortedLayers = layers.sort((a, b) => a.zPos - b.zPos);
 
   // 4. Draw layers to canvas
-  await drawLayers(ctx, sortedLayers, params);
+  await drawLayers(ctx as any, sortedLayers, params);
 
   // 5. Return PNG buffer
   return canvas.toBuffer("image/png");
@@ -155,11 +247,10 @@ export async function generateSprite(
 async function drawLayers(
   ctx: CanvasRenderingContext2D,
   layers: SpriteLayer[],
-  params: GenerateSpriteParams
+  params: SpriteParams
 ) {
   console.log("Drawing layers:", layers.length);
 
-  // Try each animation type
   for (const [animName, baseYOffset] of Object.entries(BASE_ANIMATIONS)) {
     try {
       const config = ANIMATION_CONFIGS[animName];
@@ -168,13 +259,11 @@ async function drawLayers(
         continue;
       }
 
-      // Load animation-specific images for each layer
       const animationLayers = await Promise.all(
         layers.map(async (layer) => {
-          const animPath = layer.fileName.replace(
-            `/${params.animation || "idle"}/`,
-            `/${animName}/`
-          );
+          // Replace 'idle' with the current animation name in the path
+          const animPath = layer.fileName.replace(/\/idle\//, `/${animName}/`);
+
           try {
             return {
               image: await loadImage(animPath),
@@ -205,13 +294,13 @@ async function drawLayers(
           // Draw each layer in z-order for this specific frame
           for (const layer of validLayers) {
             ctx.drawImage(
-              layer.image,
-              frame * UNIVERSAL_FRAME_SIZE, // source x
-              row * UNIVERSAL_FRAME_SIZE, // source y - use row for source
+              layer.image as unknown as CanvasImageSource,
+              frame * UNIVERSAL_FRAME_SIZE,
+              row * UNIVERSAL_FRAME_SIZE,
               UNIVERSAL_FRAME_SIZE,
               UNIVERSAL_FRAME_SIZE,
-              frame * UNIVERSAL_FRAME_SIZE, // dest x
-              yOffset + row * UNIVERSAL_FRAME_SIZE, // dest y - use calculated yOffset
+              frame * UNIVERSAL_FRAME_SIZE,
+              yOffset + row * UNIVERSAL_FRAME_SIZE,
               UNIVERSAL_FRAME_SIZE,
               UNIVERSAL_FRAME_SIZE
             );
@@ -221,14 +310,5 @@ async function drawLayers(
     } catch (error) {
       console.error(`Failed to draw animation ${animName}:`, error);
     }
-  }
-}
-
-async function fileExists(filePath: string): Promise<boolean> {
-  try {
-    await fs.access(filePath);
-    return true;
-  } catch {
-    return false;
   }
 }

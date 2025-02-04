@@ -24,11 +24,21 @@ export interface SpriteConfig {
 
 export interface GenerateSpriteParams {
   id: string;
-  type: string;
+  type: SpriteType;
   color?: string;
-  animation?: string;
-  bodyType: "male" | "female" | "child" | "teen" | "muscular" | "pregnant";
+  animation: AnimationType;
+  bodyType: BodyType;
   matchBodyColor: boolean;
+  shadow: boolean;
+  bodyColor: string;
+  special: string | null;
+  wounds: boolean;
+  prostheses: string | null;
+  wheelchair: boolean;
+  wings: string | null;
+  lizard: boolean;
+  weaponCategory: string | null;
+  weaponVariant: string | null;
 }
 
 export interface SpriteMetadata {
@@ -48,3 +58,13 @@ export interface SpriteLayer {
   variant: string;
   supportedAnimations?: string[];
 }
+
+export type BodyType =
+  | "male"
+  | "female"
+  | "teen"
+  | "child"
+  | "muscular"
+  | "pregnant";
+
+export type WeaponCategory = "S staff" | "Crystal" | "Wand" | null;
