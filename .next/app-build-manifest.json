@@ -1,3 +1,9 @@
 {
-  "pages": {}
+  "pages": {
+    "/api/sprite/test/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/sprite/test/route.js"
+    ]
+  }
 }

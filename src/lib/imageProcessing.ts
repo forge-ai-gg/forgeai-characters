@@ -8,20 +8,18 @@ export async function removeBlankSpace(buffer: Buffer): Promise<Buffer> {
 
   // Get alpha channel data
   const { data } = await sharp(buffer)
-    .extractChannel('alpha')
+    .extractChannel("alpha")
     .raw()
     .toBuffer({ resolveWithObject: true });
 
   // Check if image is completely blank
-  const isBlank = !data.some(pixel => pixel > 0);
-  
+  const isBlank = !data.some((pixel) => pixel > 0);
+
   if (isBlank) {
     throw new Error("Image is completely blank");
   }
 
-  return sharp(buffer)
-    .trim()
-    .toBuffer();
+  return sharp(buffer).trim().toBuffer();
 }
 
 interface SliceConfig {
@@ -32,7 +30,7 @@ interface SliceConfig {
 }
 
 export async function sliceSprite(
-  buffer: Buffer, 
+  buffer: Buffer,
   config: SliceConfig
 ): Promise<Buffer> {
   return sharp(buffer)
@@ -40,25 +38,25 @@ export async function sliceSprite(
       left: config.offsetX,
       top: config.offsetY,
       width: config.width,
-      height: config.height
+      height: config.height,
     })
     .toBuffer();
 }
 
 export const BASE_ANIMATIONS = {
   spellcast: 0,
-  thrust: 4 * UNIVERSAL_FRAME_SIZE,
-  walk: 8 * UNIVERSAL_FRAME_SIZE,
-  slash: 12 * UNIVERSAL_FRAME_SIZE,
-  shoot: 16 * UNIVERSAL_FRAME_SIZE,
-  hurt: 20 * UNIVERSAL_FRAME_SIZE,
-  climb: 21 * UNIVERSAL_FRAME_SIZE,
-  idle: 22 * UNIVERSAL_FRAME_SIZE,
-  jump: 26 * UNIVERSAL_FRAME_SIZE,
-  sit: 30 * UNIVERSAL_FRAME_SIZE,
-  emote: 34 * UNIVERSAL_FRAME_SIZE,
-  run: 38 * UNIVERSAL_FRAME_SIZE,
-  combat_idle: 42 * UNIVERSAL_FRAME_SIZE,
-  backslash: 46 * UNIVERSAL_FRAME_SIZE,
-  halfslash: 50 * UNIVERSAL_FRAME_SIZE,
-} as const; 
+  thrust: 4 * 64,
+  walk: 8 * 64,
+  slash: 12 * 64,
+  shoot: 16 * 64,
+  hurt: 20 * 64,
+  climb: 21 * 64,
+  idle: 22 * 64,
+  jump: 26 * 64,
+  sit: 30 * 64,
+  emote: 34 * 64,
+  run: 38 * 64,
+  combat_idle: 42 * 64,
+  backslash: 46 * 64,
+  halfslash: 50 * 64,
+} as const;

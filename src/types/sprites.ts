@@ -24,9 +24,11 @@ export interface SpriteConfig {
 
 export interface GenerateSpriteParams {
   id: string;
-  type?: SpriteType;
+  type: string;
   color?: string;
-  animation?: AnimationType;
+  animation?: string;
+  bodyType: "male" | "female" | "child" | "teen" | "muscular" | "pregnant";
+  matchBodyColor: boolean;
 }
 
 export interface SpriteMetadata {
@@ -35,4 +37,14 @@ export interface SpriteMetadata {
   frameCount: number;
   type: SpriteType;
   animation: AnimationType;
+}
+
+export interface SpriteLayer {
+  fileName: string;
+  zPos: number;
+  custom_animation?: string;
+  parentName: string;
+  name: string;
+  variant: string;
+  supportedAnimations?: string[];
 }
