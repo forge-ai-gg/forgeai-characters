@@ -104,6 +104,9 @@ function parseVariant(value: string): {
     }
     // Format: Body_color_light
     return { color: third as string };
+  } else if (parts.length === 2 && parts[0].toLowerCase() === "head") {
+    // Format: Head_human
+    return { style: parts[1], color: "light" }; // Default color for heads
   }
   return { color: parts[parts.length - 1] as string };
 }
@@ -231,7 +234,7 @@ async function getLayersForSprite(
     );
 
     if (!sheetDefinition) {
-      console.error(`❌ No sheet definition found for type: ${type}`);
+      console.error(`❌ No sheet definition found for type: ${type} (${type})`);
       continue;
     }
 
@@ -300,6 +303,14 @@ async function processLayersForComponent(
   value: string,
   params: SpriteConfigQueryParams
 ): Promise<void> {
+  console.log(`\nProcessing component details:`, {
+    type,
+    value,
+    definition_type: sheetDefinition.type_name,
+    has_animations: !!sheetDefinition.animations,
+    layers: Object.keys(sheetDefinition).filter((k) => k.startsWith("layer_")),
+  });
+
   // Special handling for heads
   if (type === "head") {
     const { style, color } = parseVariant(value);
@@ -366,7 +377,49 @@ async function processLayersForComponent(
   }
 
   // Regular component handling
-  const variant = value.split("_").pop() || "";
+  const parts = value.split("_");
+  let variant = parts[parts.length - 1];
+
+  // Special handling for shields
+  if (type === "shield") {
+    // Format: Kite_kite_gray_green -> gray_green
+    const colorParts = parts.slice(2); // Skip "Kite_kite" prefix
+    variant = colorParts.join("_");
+
+    for (let i = 1; i <= 8; i++) {
+      const layerKey = `layer_${i}` as keyof SheetDefinition;
+      const layer = sheetDefinition[layerKey] as LayerDefinition | undefined;
+
+      if (!layer) continue;
+
+      // Shields have fg/ and bg/ paths
+      const componentPath =
+        layer.male?.replace("/fg/", "/") || layer.male?.replace("/bg/", "/");
+
+      if (!componentPath) {
+        console.log(`No path found for shield layer ${i}`);
+        continue;
+      }
+
+      const fileName = await findValidAnimationFile(
+        componentPath,
+        variant,
+        sheetDefinition.animations
+      );
+
+      if (fileName) {
+        layers.push({
+          fileName,
+          zPos: layer.zPos,
+          parentName: type,
+          name: `${type}_${layerKey}`,
+          variant: value,
+          supportedAnimations: sheetDefinition.animations || [],
+        });
+      }
+    }
+    return;
+  }
 
   for (let i = 1; i <= 8; i++) {
     const layerKey = `layer_${i}` as keyof SheetDefinition;
@@ -374,14 +427,25 @@ async function processLayersForComponent(
 
     if (!layer) continue;
 
-    const sexPath = layer[params.sex as keyof LayerDefinition] as
+    // Get path - use direct path if available, otherwise try sex-specific
+    const componentPath = layer[params.sex as keyof LayerDefinition] as
       | string
       | undefined;
-    if (!sexPath) continue;
+
+    if (!componentPath) {
+      console.log(`No path found for component ${type}, layer ${i}`);
+      continue;
+    }
+
+    console.log(`Attempting file lookup:`, {
+      componentPath,
+      variant,
+      animations: sheetDefinition.animations,
+    });
 
     const fileName = await findValidAnimationFile(
-      sexPath,
-      variant,
+      componentPath,
+      variant || "",
       sheetDefinition.animations
     );
 
@@ -394,6 +458,14 @@ async function processLayersForComponent(
         variant: value,
         supportedAnimations: sheetDefinition.animations || [],
       });
+    } else {
+      console.error(
+        `❌ Component file not found:
+         Type: ${type}
+         Path: ${componentPath}
+         Variant: ${variant}
+         Sex: ${params.sex}`
+      );
     }
   }
 }
