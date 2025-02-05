@@ -1,3 +1,5 @@
+import { BASE_ANIMATIONS } from "@/lib/imageProcessing";
+
 export type SpriteType = "warrior" | "mage" | "rogue";
 export type AnimationType = keyof typeof BASE_ANIMATIONS;
 
