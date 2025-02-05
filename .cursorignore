@@ -1,0 +1,5 @@
+sheet_definitions/
+public/spritesheets/
+node_modules/
+.next/
+dist/ 

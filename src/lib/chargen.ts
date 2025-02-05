@@ -3,25 +3,11 @@ import { createCanvas, loadImage } from "canvas";
 import { promises as fs } from "fs";
 import path from "path";
 import { BASE_ANIMATIONS } from "./imageProcessing";
+import { sheetDefinitions, type SheetDefinition } from "./sheetDefinitions";
 
 const UNIVERSAL_FRAME_SIZE = 64;
 const UNIVERSAL_SHEET_WIDTH = 832;
 const UNIVERSAL_SHEET_HEIGHT = 3456;
-
-interface SheetDefinition {
-  name: string;
-  type_name: string;
-  layer_1: {
-    zPos: number;
-    male: string;
-    female: string;
-    muscular?: string;
-    teen?: string;
-    pregnant?: string;
-  };
-  variants: string[];
-  animations?: string[];
-}
 
 interface AnimationConfig {
   frames: number;
@@ -51,30 +37,12 @@ console.error = (...args) => {
   originalError("\x1b[31m", ...args, "\x1b[0m");
 };
 
-async function loadSheetDefinitions(): Promise<SheetDefinition[]> {
-  const definitionsPath = path.join(process.cwd(), "sheet_definitions");
-  // console.log("Reading sheet definitions from:", definitionsPath);
-
-  const files = await fs.readdir(definitionsPath);
-  // console.log("Found definition files:", files);
-
-  const definitions: SheetDefinition[] = [];
-  for (const file of files) {
-    if (file.endsWith(".json")) {
-      const filePath = path.join(definitionsPath, file);
-      // console.log("Loading definition file:", filePath);
-      const content = await fs.readFile(filePath, "utf-8");
-      definitions.push(JSON.parse(content));
-    }
-  }
-  return definitions;
-}
+const definitions = Object.values(sheetDefinitions);
 
 async function getLayersForSprite(
   params: SpriteConfigQueryParams
 ): Promise<SpriteLayer[]> {
   const layers: SpriteLayer[] = [];
-  const definitions = await loadSheetDefinitions();
   const assetsPath = path.join(process.cwd(), "public/spritesheets");
 
   console.log("Processing request:", {
@@ -193,10 +161,10 @@ async function getLayersForSprite(
 
           if (basePath) {
             // Adjust path for child heads
-            let headPath = basePath;
+            let headPath = basePath as string;
             if (params.sex === "child") {
               // Replace 'adult' with 'child' in the path if it exists
-              headPath = basePath.toString().replace("/adult/", "/child/");
+              headPath = headPath.replace("/adult/", "/child/");
             }
 
             const fileName = path.join(
@@ -237,48 +205,89 @@ async function getLayersForSprite(
         def = definitions.find((d) => d.type_name === component.type);
 
         if (def) {
-          const layerKeys = ["layer_1", "layer_2"] as const;
-          for (const layerKey of layerKeys) {
-            if (def[layerKey as keyof SheetDefinition]) {
-              const layer = def[layerKey as keyof SheetDefinition];
+          // Process all possible layers
+          for (let i = 1; i <= 8; i++) {
+            const layerKey = `layer_${i}` as keyof SheetDefinition;
+            const layer = def[layerKey];
+
+            if (layer) {
               const sexKey = params.sex as keyof typeof layer;
-              const basePath = layer?.[sexKey];
-
-              // Special handling for arms to extract variant
-              let variant = "";
-              let componentPath = basePath;
-              if (component.type === "arms") {
-                const parts = component.path.split("_");
-                if (parts[0] === "none") {
-                  continue;
-                }
-                const armourType = parts[0].toLowerCase();
-                variant = parts[parts.length - 1];
-                componentPath = path.join(
-                  "arms",
-                  armourType,
-                  "plate",
-                  params.sex
-                );
-              } else if (
-                component.type === "shoulders" ||
-                component.type === "bauldron"
-              ) {
-                // Use the definition file's path structure
-                const parts = component.path.split("_");
-                variant = parts[parts.length - 1];
-
-                // Get base path from definition
-                const sexKey = params.sex as keyof typeof layer;
-                const defPath = layer?.[sexKey] as string;
-
-                // Remove trailing slash if present
-                componentPath = defPath.replace(/\/$/, "");
-              } else {
-                variant = component.path.split("_").pop() || "";
-              }
+              const basePath = layer[sexKey];
 
               if (basePath) {
+                // Special handling for arms to extract variant
+                let variant = "";
+                let componentPath = basePath;
+                if (component.type === "arms") {
+                  const parts = component.path.split("_");
+                  if (parts[0] === "none") {
+                    continue;
+                  }
+                  const armourType = parts[0].toLowerCase();
+                  variant = parts[parts.length - 1];
+                  componentPath = path.join(
+                    "arms",
+                    armourType,
+                    "plate",
+                    params.sex
+                  );
+                } else if (
+                  component.type === "shoulders" ||
+                  component.type === "bauldron" ||
+                  component.type === "wrists" ||
+                  component.type === "gloves" ||
+                  component.type === "clothes"
+                ) {
+                  // Use the definition file's path structure
+                  const parts = component.path.split("_");
+                  if (parts[0] === "none") {
+                    continue;
+                  }
+
+                  if (component.type === "clothes") {
+                    const parts = component.path.split("_");
+                    variant = parts[parts.length - 1].toLowerCase(); // "blue"
+
+                    // Get base path from definition like "torso/clothes/longsleeve/longsleeve/male/"
+                    const sexKey = params.sex as keyof typeof layer;
+                    const defPath = layer?.[sexKey];
+
+                    if (!defPath) {
+                      console.error(
+                        `No path found for ${component.type} ${sexKey}`
+                      );
+                      continue;
+                    }
+
+                    // Remove trailing slash if present
+                    componentPath = defPath.replace(/\/$/, "");
+                  } else {
+                    const itemType = parts[0].toLowerCase(); // "epaulets", "cuffs", etc
+                    variant = parts[parts.length - 1].toLowerCase(); // "gray", "brass", etc
+
+                    if (component.type === "bauldron") {
+                      componentPath = path.join("bauldron", params.sex);
+                    } else if (component.type === "gloves") {
+                      componentPath = path.join("gloves", params.sex);
+                    } else {
+                      componentPath = path.join(
+                        component.type,
+                        itemType,
+                        params.sex
+                      );
+                    }
+                  }
+                } else if (component.type === "bracers") {
+                  const parts = component.path.split("_");
+                  if (parts[0] === "none") {
+                    continue;
+                  }
+                  variant = parts[parts.length - 1].toLowerCase(); // "brass"
+                  componentPath = path.join("bracers", params.sex);
+                } else {
+                  variant = component.path.split("_").pop() || "";
+                }
+
                 let fileName = path.join(
                   assetsPath,
                   componentPath,
@@ -289,10 +298,15 @@ async function getLayersForSprite(
                 try {
                   await fs.access(fileName);
                 } catch (error) {
-                  // Fallback to walk animation for arms and shoulders
+                  // Fallback to walk animation for arms, shoulders, bauldron and wrists
                   if (
                     component.type === "arms" ||
-                    component.type === "shoulders"
+                    component.type === "shoulders" ||
+                    component.type === "bauldron" ||
+                    component.type === "wrists" ||
+                    component.type === "clothes" ||
+                    component.type === "bracers" ||
+                    component.type === "gloves"
                   ) {
                     fileName = path.join(
                       assetsPath,
@@ -303,19 +317,14 @@ async function getLayersForSprite(
                   }
                 }
 
-                try {
-                  await fs.access(fileName);
-                  layers.push({
-                    fileName,
-                    zPos: layer?.zPos || 0,
-                    parentName: component.type,
-                    name: `${component.type}_${layerKey}`,
-                    variant: component.path,
-                    supportedAnimations: def?.animations || [],
-                  });
-                } catch (error) {
-                  console.error(`File not found: ${fileName}`);
-                }
+                layers.push({
+                  fileName,
+                  zPos: layer.zPos,
+                  parentName: component.type,
+                  name: `${component.type}_${layerKey}`,
+                  variant: component.path,
+                  supportedAnimations: def?.animations || [],
+                });
               }
             }
           }
@@ -375,7 +384,7 @@ async function drawLayers(
           }
 
           // Replace the animation folder in the path
-          const animPath = layer.fileName.replace(
+          const animPath = layer.fileName?.replace(
             /\/(idle|walk|run|slash|thrust|spellcast|shoot|hurt|jump|climb)\//,
             `/${animName}/`
           );
