@@ -68,3 +68,41 @@ export type BodyType =
   | "pregnant";
 
 export type WeaponCategory = "S staff" | "Crystal" | "Wand" | null;
+
+export interface SpriteConfigQueryParams {
+  body: string;
+  head: string;
+  sex: string;
+  shadow?: string;
+  expression: string;
+  eyes: string;
+  ears: string;
+  nose: string;
+  eyebrows: string;
+  wrinkles: string;
+  beard: string;
+  mustache: string;
+  hair: string;
+  shoulders: string;
+  arms: string;
+  bauldron: string;
+  bracers: string;
+  gloves: string;
+  ring: string;
+  clothes: string;
+  chainmail: string;
+  legs: string;
+  shoes: string;
+  weapon: string | null;
+  shield: string;
+  animation?: string;
+  bodyColor?: string;
+  special?: string | null;
+  prostheses?: string | null;
+  wings?: string | null;
+  wounds?: boolean;
+  wheelchair?: boolean;
+  lizard?: boolean;
+  matchBodyColor?: boolean;
+  weaponVariant?: string;
+}
