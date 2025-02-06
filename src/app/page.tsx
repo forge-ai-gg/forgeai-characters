@@ -32,25 +32,15 @@ export default async function Home({ searchParams }: HomeProps) {
     <main className="p-8">
       <h1 className="text-2xl font-bold mb-6">Forge AI Generator API</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="space-y-6">
+      <div className="grid grid-cols-12 gap-8">
+        <div className="col-span-12 md:col-span-4 space-y-6">
           <h2 className="text-xl mb-2">Actions</h2>
           <div className="space-x-2">
-            {/* <button
-              onClick={handleReset}
-              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-            >
-              Reset
-            </button>
-            <button
-              onClick={() => {
-                // Download sprite
-                window.open(spriteUrl, "_blank");
-              }}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              Download PNG
-            </button>
+            <div>coming soon</div>
+          </div>
+        </div>
+        <div className="col-span-12 md:col-span-8 space-y-6">
+          <div className="space-x-2">
             <div>
               <h2 className="text-xl mb-2">API URL</h2>
               <pre className="bg-gray-800 text-white p-4 rounded overflow-x-auto">
@@ -60,11 +50,6 @@ export default async function Home({ searchParams }: HomeProps) {
               </pre>
             </div>
           </div>
-          <div>
-            <AllOptionsWrapper />
-          </div> */}
-          </div>
-
           <div className="space-y-6">
             <div>
               <h2 className="text-xl mb-2">Preview</h2>
