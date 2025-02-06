@@ -3,8 +3,8 @@ import { SheetDefinition, sheetDefinitions } from "./sheetDefinitions";
 interface CategoryNode {
   [key: string]: {
     name: string;
-    items: string[];
-    variants: string[];
+    item: string[];
+    variant: string[];
   };
 }
 
@@ -27,18 +27,18 @@ export async function generateCategories() {
 
       categories[type] = {
         name: displayName,
-        items: [],
-        variants: [],
+        item: [],
+        variant: [],
       };
     }
 
-    categories[type].items.push(key.replaceAll(type + "_", ""));
+    categories[type].item.push(key.replaceAll(type + "_", ""));
 
     // Add variance if it exists and isn't already in the array
     if (definition.variants) {
       definition.variants.forEach((v) => {
-        if (!categories[type]?.variants.includes(v)) {
-          categories[type]?.variants.push(v);
+        if (!categories[type]?.variant.includes(v)) {
+          categories[type]?.variant.push(v);
         }
       });
     }
