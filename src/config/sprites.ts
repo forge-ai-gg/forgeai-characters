@@ -1,3 +1,4 @@
+import { BASE_ANIMATIONS } from "@/lib/imageProcessing";
 import { SpriteConfig } from "@/types/sprites";
 
 export const SPRITE_CONFIG: SpriteConfig = {
@@ -7,8 +8,7 @@ export const SPRITE_CONFIG: SpriteConfig = {
       : "./public/assets",
 
   types: ["warrior", "mage", "rogue"],
-  animations: Object.keys(BASE_ANIMATIONS),
-
+  animations: Object.keys(BASE_ANIMATIONS) as (keyof typeof BASE_ANIMATIONS)[],
   sheets: {
     arms: {
       path: "arms.png",

@@ -1,4 +1,4 @@
-import { generateSprite } from "@/lib/chargen";
+import { generateSprite } from "@/lib/generateSprite";
 import { SpriteConfigQueryParams } from "@/types/sprites";
 import { NextRequest } from "next/server";
 
@@ -7,15 +7,15 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
 
     // Format the parameters properly
-    const params: SpriteConfigQueryParams = {
+    const params: Partial<SpriteConfigQueryParams> = {
       body: searchParams.get("body") || "Body_color_light",
       head: searchParams.get("head") || "Human_male_light",
       sex: searchParams.get("sex") || "male",
-      shadow:
-        searchParams.get("shadow") === "true" ||
-        searchParams.get("shadow") === "1"
-          ? "Shadow_shadow"
-          : undefined,
+      // shadow:
+      //   searchParams.get("shadow") === "true" ||
+      //   searchParams.get("shadow") === "1"
+      //     ? "Shadow_shadow"
+      //     : undefined,
       ...Object.fromEntries(searchParams.entries()),
     };
 

@@ -5,7 +5,7 @@ import { drawLayers } from "./drawLayers";
 import { getLayersForSprite } from "./getLayersForSprite";
 
 export async function generateSprite(
-  params: SpriteConfigQueryParams
+  params: Partial<SpriteConfigQueryParams>
 ): Promise<Buffer> {
   // 1. Load layer definitions based on params
   const layers = await getLayersForSprite(params);
