@@ -55,9 +55,9 @@ export interface SpriteLayer {
   fileName: string;
   zPos: number;
   custom_animation?: string;
-  parentName: string;
-  name: string;
-  variant: string;
+  parentName?: string;
+  name?: string;
+  variant?: string;
   supportedAnimations?: string[];
 }
 
