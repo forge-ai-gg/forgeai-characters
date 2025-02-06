@@ -1,11 +1,11 @@
-import { generateOptions } from "@/lib/generateSheetDefinitionOptions";
+import { generateCategories } from "@/lib/generateSheetDefinitionCategories";
 import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
-    const options = await generateOptions();
+    const categories = await generateCategories();
 
-    return new Response(JSON.stringify(options), {
+    return new Response(JSON.stringify(categories), {
       headers: {
         "Content-Type": "application/json",
         "Cache-Control": "public, max-age=31536000, immutable",

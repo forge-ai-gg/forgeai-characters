@@ -6,7 +6,9 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
-        "generate:sheets": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' src/lib/generateSheetDefinitions.ts"
+        "generate:sheets": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' src/lib/generateSheetDefinitions.ts",
+        "generate:options": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' src/lib/generateOptionsFromSheetDefinitions.ts",
+        "generate:categories": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' src/lib/generateSheetDefinitionCategories.ts"
     },
     "dependencies": {
         "@radix-ui/react-accordion": "^1.2.2",
