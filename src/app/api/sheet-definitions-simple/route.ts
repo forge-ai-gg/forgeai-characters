@@ -18,7 +18,7 @@ export async function GET() {
           .filter(
             ([key, value]) => (value as SheetDefinition).type_name === "hair"
           )
-          .map(([key, value]) => value.name),
+          .map(([key, value]) => value.name.replaceAll(" ", "_")),
       ],
       hairColor: [
         "blonde",
@@ -30,11 +30,11 @@ export async function GET() {
         "ginger",
         "carrot",
         "chestnut",
-        "light brown",
-        "dark brown",
+        "light_brown",
+        "dark_brown",
         "black",
         "raven",
-        "dark gray",
+        "dark_gray",
         "gray",
       ],
       shirtStyle: ["Longsleeve", "Shortsleeve"],
