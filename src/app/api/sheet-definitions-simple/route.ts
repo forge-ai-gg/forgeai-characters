@@ -52,7 +52,7 @@ export async function GET() {
         "maroon",
         "navy",
       ],
-      pantsStyle: ["Pants", "Longs"],
+      pantsStyle: ["Pants"],
       pantsColor: [
         "black",
         "blue",
