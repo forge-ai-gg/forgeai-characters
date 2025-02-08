@@ -24,3 +24,6 @@ export const ANIMATION_CONFIGS: Record<string, AnimationConfig> = {
   backslash: { frames: 6, rows: 4 }, // 6 frames, 4 rows
   halfslash: { frames: 5, rows: 4 }, // 5 frames, 4 rows
 };
+
+export const ALLOWED_ORIGINS = ["https://app.forgeai.gg"];
+export const LOCALHOST_PATTERN = /^http:\/\/localhost:/;
