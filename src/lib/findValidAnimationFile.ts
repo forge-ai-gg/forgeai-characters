@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { ASSETS_PATH } from "./constants";
+import { ASSETS_PATH } from "./constants.server";
 
 export async function findValidAnimationFile({
   componentPath,

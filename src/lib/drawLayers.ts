@@ -1,7 +1,7 @@
 import { SpriteLayer } from "@/types/sprites";
 import { loadImage } from "canvas";
-import { ANIMATION_CONFIGS, UNIVERSAL_FRAME_SIZE } from "./constants";
 import { BASE_ANIMATIONS } from "./imageProcessing";
+import { ANIMATION_CONFIGS, UNIVERSAL_FRAME_SIZE } from "./server";
 
 export async function drawLayers(
   ctx: CanvasRenderingContext2D,

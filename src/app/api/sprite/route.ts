@@ -1,23 +1,9 @@
-import { ALLOWED_ORIGINS, LOCALHOST_PATTERN } from "@/lib/constants";
 import { generateSprite } from "@/lib/generateSprite";
 import { SpriteConfigQueryParams } from "@/types/sprites";
 import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
-    // Check origin if it exists
-    const origin = request.headers.get("origin");
-    if (
-      origin &&
-      !ALLOWED_ORIGINS.includes(origin) &&
-      !LOCALHOST_PATTERN.test(origin)
-    ) {
-      return new Response("Not allowed", {
-        status: 403,
-        headers: { "Content-Type": "text/plain" },
-      });
-    }
-
     const searchParams = request.nextUrl.searchParams;
 
     // Format the parameters properly
@@ -43,21 +29,14 @@ export async function GET(request: NextRequest) {
       .map(([key, value]) => `${key}=${value}`)
       .join("&");
 
-    // Add CORS headers when origin is present
     const headers: Record<string, string> = {
       "Content-Type": "image/png",
       "Cache-Control": "public, max-age=31536000, immutable",
-      Vary: "Origin, Accept, Accept-Encoding, Accept-Language, Cookie",
       "Cache-Key": cacheKey,
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET",
+      "Access-Control-Max-Age": "86400",
     };
-
-    if (
-      origin &&
-      (ALLOWED_ORIGINS.includes(origin) || LOCALHOST_PATTERN.test(origin))
-    ) {
-      headers["Access-Control-Allow-Origin"] = origin;
-      headers["Access-Control-Allow-Methods"] = "GET";
-    }
 
     return new Response(sprite, { headers });
   } catch (error) {
@@ -71,20 +50,11 @@ export async function GET(request: NextRequest) {
 
 // Add OPTIONS handler for CORS preflight
 export async function OPTIONS(request: NextRequest) {
-  const origin = request.headers.get("origin");
-
-  if (
-    origin &&
-    (ALLOWED_ORIGINS.includes(origin) || LOCALHOST_PATTERN.test(origin))
-  ) {
-    return new Response(null, {
-      headers: {
-        "Access-Control-Allow-Origin": origin,
-        "Access-Control-Allow-Methods": "GET",
-        "Access-Control-Max-Age": "86400",
-      },
-    });
-  }
-
-  return new Response(null, { status: 204 });
+  return new Response(null, {
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET",
+      "Access-Control-Max-Age": "86400",
+    },
+  });
 }

@@ -1,8 +1,9 @@
 import { SpriteConfigQueryParams } from "@/types/sprites";
 import { createCanvas } from "canvas";
-import { UNIVERSAL_SHEET_HEIGHT, UNIVERSAL_SHEET_WIDTH } from "./constants";
+
 import { drawLayers } from "./drawLayers";
 import { getLayersForSprite } from "./getLayersForSprite";
+import { UNIVERSAL_SHEET_HEIGHT, UNIVERSAL_SHEET_WIDTH } from "./server";
 
 export async function generateSprite(
   params: Partial<SpriteConfigQueryParams>

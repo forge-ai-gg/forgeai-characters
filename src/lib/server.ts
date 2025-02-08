@@ -1,11 +1,8 @@
-import path from "path";
 import { AnimationConfig } from "./types";
 
 export const UNIVERSAL_FRAME_SIZE = 64;
 export const UNIVERSAL_SHEET_WIDTH = 832;
 export const UNIVERSAL_SHEET_HEIGHT = 3456;
-
-export const ASSETS_PATH = path.join(process.cwd(), "public/spritesheets");
 
 export const ANIMATION_CONFIGS: Record<string, AnimationConfig> = {
   spellcast: { frames: 7, rows: 4 }, // First 4 rows, 7 frames each

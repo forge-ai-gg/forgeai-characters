@@ -8,26 +8,53 @@ const MAX_REQUESTS_PER_MINUTE = 10;
 const WINDOW_DURATION_MS = 60000;
 
 export function middleware(request: NextRequest) {
+  // Handle OPTIONS request for CORS preflight
+  if (request.method === "OPTIONS") {
+    return new NextResponse(null, {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  }
+
+  // Create base response
+  const response = NextResponse.next();
+
+  // Add CORS headers for all origins
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+
+  // Apply rate limiting only to sprite endpoint
   if (request.nextUrl.pathname.startsWith("/api/sprite")) {
     const ip = request.headers.get("x-forwarded-for") ?? "anonymous";
     const now = Date.now();
-    const windowStart = now - WINDOW_DURATION_MS; // 1 minute window
+    const windowStart = now - WINDOW_DURATION_MS;
 
     const requestCount = rateLimit.get(ip) ?? [];
     const recentRequests = requestCount.filter((time) => time > windowStart);
 
     if (recentRequests.length >= MAX_REQUESTS_PER_MINUTE) {
-      // 10 requests per minute
-      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+      return NextResponse.json(
+        { error: "Too many requests" },
+        {
+          status: 429,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS",
+          },
+        }
+      );
     }
 
     recentRequests.push(now);
     rateLimit.set(ip, recentRequests);
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
-  matcher: "/api/sprite/:path*",
+  matcher: ["/api/:path*"],
 };
