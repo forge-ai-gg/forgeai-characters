@@ -27,30 +27,30 @@ export function middleware(request: NextRequest) {
   response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
 
   // Apply rate limiting only to sprite endpoint
-  if (request.nextUrl.pathname.startsWith("/api/sprite")) {
-    const ip = request.headers.get("x-forwarded-for") ?? "anonymous";
-    const now = Date.now();
-    const windowStart = now - WINDOW_DURATION_MS;
+  // if (request.nextUrl.pathname.startsWith("/api/sprite")) {
+  //   const ip = request.headers.get("x-forwarded-for") ?? "anonymous";
+  //   const now = Date.now();
+  //   const windowStart = now - WINDOW_DURATION_MS;
 
-    const requestCount = rateLimit.get(ip) ?? [];
-    const recentRequests = requestCount.filter((time) => time > windowStart);
+  //   const requestCount = rateLimit.get(ip) ?? [];
+  //   const recentRequests = requestCount.filter((time) => time > windowStart);
 
-    if (recentRequests.length >= MAX_REQUESTS_PER_MINUTE) {
-      return NextResponse.json(
-        { error: "Too many requests" },
-        {
-          status: 429,
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, OPTIONS",
-          },
-        }
-      );
-    }
+  //   if (recentRequests.length >= MAX_REQUESTS_PER_MINUTE) {
+  //     return NextResponse.json(
+  //       { error: "Too many requests" },
+  //       {
+  //         status: 429,
+  //         headers: {
+  //           "Access-Control-Allow-Origin": "*",
+  //           "Access-Control-Allow-Methods": "GET, OPTIONS",
+  //         },
+  //       }
+  //     );
+  //   }
 
-    recentRequests.push(now);
-    rateLimit.set(ip, recentRequests);
-  }
+  //   recentRequests.push(now);
+  //   rateLimit.set(ip, recentRequests);
+  // }
 
   return response;
 }
