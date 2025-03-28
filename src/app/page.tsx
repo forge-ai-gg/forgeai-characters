@@ -36,7 +36,7 @@ export default async function Home({ searchParams }: HomeProps) {
         <div className="col-span-12 md:col-span-4 space-y-6">
           <h2 className="text-xl mb-2">Actions</h2>
           <div className="space-x-2">
-            <div>coming soon</div>
+            <div>coming soon..dev</div>
           </div>
         </div>
         <div className="col-span-12 md:col-span-8 space-y-6">
