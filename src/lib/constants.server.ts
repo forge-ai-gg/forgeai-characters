@@ -1,3 +1,2 @@
-import path from "path";
-
-export const ASSETS_PATH = path.join(process.cwd(), "public/spritesheets");
+export const ASSETS_BASE_URL =
+  "https://forgeai-characters-spritesheets.s3.us-west-1.amazonaws.com/spritesheets";

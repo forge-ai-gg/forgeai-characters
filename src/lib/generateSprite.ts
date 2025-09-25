@@ -10,7 +10,7 @@ export async function generateSprite(
 ): Promise<Buffer> {
   // 1. Load layer definitions based on params
   const layers = await getLayersForSprite(params);
-  // console.log("Got layers:", layers.length);
+  console.log("Got layers:", layers.length);
 
   // 2. Create canvas with full spritesheet dimensions
   const canvas = createCanvas(UNIVERSAL_SHEET_WIDTH, UNIVERSAL_SHEET_HEIGHT);

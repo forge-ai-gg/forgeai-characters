@@ -25,7 +25,7 @@ export async function drawLayers(
             return null;
           }
 
-          // Replace the animation folder in the path
+          // Replace the animation folder in the URL
           const animPath = layer.fileName?.replace(
             /\/(idle|walk|run|slash|thrust|spellcast|shoot|hurt|jump|climb)\//,
             `/${animName}/`
